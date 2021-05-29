@@ -1,0 +1,79 @@
+<html>
+    <head>
+        <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+        <script src="thirdparty/aframe-physics-components.js"></script>
+        <script src="thirdparty/gyronorm.complete.js"></script>
+    </head>
+    <body>
+    <a-scene background="color: #152347" physics-world="gravity: 0 -9.8 0">
+        <a-entity id="rig" position="69 1450 42" physics-body="boundingBox: 1 2 1; mass: 5; velocity: 0 0 0">
+            <a-entity id="camera" camera look-controls wasd-controls></a-entity>
+        </a-entity>
+        <a-entity id="leftHand" hand-controls="hand: left"></a-entity>
+        <a-entity id="rightHand" hand-controls="hand: right"></a-entity>
+        <a-obj-model src="castle/castle-tower.obj" scale="3 4 3" position="0 -500 0" mtl="castle/castle-tower.mtl" physics-body="boundingBox: 3 3.5 3; mass: 99999; velocity: 0 0 0"></a-obj-model>
+        <a-sky color="#ececec" src="sky/vignaioli_night.jpg" scale="4 4 4" physics-body="boundingBox: 9999 2 9999; mass: .1; velocity: 0 0 0"></a-sky>
+    </a-scene>
+    <script>
+        var gn = new GyroNorm();
+        function disallowXYMovement() {
+            document.getElementById('rig').object3D.position.x = document.getElementById('rig').object3D.position.x 
+            document.getElementById('rig').object3D.position.y = document.getElementById('rig').object3D.position.y 
+        }
+        gn.init().then(function(){
+        gn.start(function(data){
+            // Process:
+            // data.do.alpha	( deviceorientation event alpha value )
+            // data.do.beta		( deviceorientation event beta value )
+            // data.do.gamma	( deviceorientation event gamma value )
+            // data.do.absolute	( deviceorientation event absolute value )
+
+            // data.dm.x		( devicemotion event acceleration x value )
+            // data.dm.y		( devicemotion event acceleration y value )
+            // data.dm.z		( devicemotion event acceleration z value )
+
+            // data.dm.gx		( devicemotion event accelerationIncludingGravity x value )
+            // data.dm.gy		( devicemotion event accelerationIncludingGravity y value )
+            // data.dm.gz		( devicemotion event accelerationIncludingGravity z value )
+
+            // data.dm.alpha	( devicemotion event rotationRate alpha value )
+            // data.dm.beta		( devicemotion event rotationRate beta value )
+            // data.dm.gamma	( devicemotion event rotationRate gamma value )
+            
+            function step(timestamp) {
+                if (document.getElementById('rig').object3D.position.x > 72 && document.getElementById('rig').object3D.position.z > 72) {
+                    document.getElementById('rig').object3D.position.y = Math.max(1,document.getElementById('rig').object3D.position.y) - 1
+                    disallowXYMovement()
+                } else if (document.getElementById('rig').object3D.position.x < -72 && document.getElementById('rig').object3D.position.z < -72) {
+                    document.getElementById('rig').object3D.position.y = Math.max(1,document.getElementById('rig').object3D.position.y) - 1
+                    disallowXYMovement()
+                } else { 
+                    document.getElementById('rig').object3D.position.y = 1450
+                    document.getElementById('rig').object3D.position.x = data.dm.x
+                    document.getElementById('rig').object3D.position.z = data.dm.z
+                }
+                window.requestAnimationFrame(step)
+            }
+            window.requestAnimationFrame(step)
+            
+        });
+        }).catch(function(e){
+            console.log("No gyro found! Revert to testing mode...")
+            function step(timestamp) {
+                console.log(`${document.getElementById('rig').object3D.position.x},${document.getElementById('rig').object3D.position.y},${document.getElementById('rig').object3D.position.z}`)
+                if (document.getElementById('rig').object3D.position.x > 72 && document.getElementById('rig').object3D.position.z > 72) {
+                    document.getElementById('rig').object3D.position.y = Math.max(1,document.getElementById('rig').object3D.position.y) - 1
+                    disallowXYMovement()
+                } else if (document.getElementById('rig').object3D.position.x < -72 && document.getElementById('rig').object3D.position.z < -72) {
+                    document.getElementById('rig').object3D.position.y = Math.max(1,document.getElementById('rig').object3D.position.y) - 1
+                    disallowXYMovement()
+                } else { 
+                    document.getElementById('rig').object3D.position.y = 1450
+                }
+                window.requestAnimationFrame(step)
+            }
+            window.requestAnimationFrame(step)
+        });
+    </script>
+    </body>
+</html>
